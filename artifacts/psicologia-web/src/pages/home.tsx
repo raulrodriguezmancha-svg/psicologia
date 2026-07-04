@@ -25,7 +25,7 @@ export default function Home() {
         <div className="container relative z-10 mx-auto px-4 py-20 flex flex-col items-start max-w-4xl mr-auto ml-4 md:ml-12 lg:ml-20">
           <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-6 animate-in fade-in slide-in-from-bottom-4">
             <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
-            Terapia 100% online
+            Terapia online
           </div>
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif text-foreground font-medium leading-tight mb-6 animate-in fade-in slide-in-from-bottom-6 delay-150 fill-mode-both">
