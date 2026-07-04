@@ -2,7 +2,7 @@ import { useListServices } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Clock, Euro, Info, Laptop, MapPin } from "lucide-react";
+import { Clock, Euro, Info, Laptop } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Services() {
@@ -56,16 +56,9 @@ export default function Services() {
                     </div>
                   </div>
                   <div className="flex gap-3 mt-2">
-                    {service.isOnline && (
-                      <span className="flex items-center text-xs font-medium text-primary">
-                        <Laptop size={14} className="mr-1" /> Online
-                      </span>
-                    )}
-                    {service.isInPerson && (
-                      <span className="flex items-center text-xs font-medium text-primary">
-                        <MapPin size={14} className="mr-1" /> Presencial
-                      </span>
-                    )}
+                    <span className="flex items-center text-xs font-medium text-primary">
+                      <Laptop size={14} className="mr-1" /> 100% Online
+                    </span>
                   </div>
                 </CardHeader>
                 <CardContent className="pb-6 flex-grow">

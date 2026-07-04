@@ -26,7 +26,7 @@ export function Footer() {
             <h4 className="font-medium text-foreground">Contacto</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <p>Colegiada M-12345</p>
-              <p>Sesiones online y presenciales</p>
+              <p>Sesiones 100% online</p>
               <p className="mt-2">hello@albagarcia-psicologia.com</p>
             </div>
           </div>
