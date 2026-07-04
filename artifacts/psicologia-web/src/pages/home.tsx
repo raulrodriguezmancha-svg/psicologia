@@ -94,11 +94,12 @@ export default function Home() {
           </div>
           <div className="w-full lg:w-1/2 space-y-6">
             <h2 className="text-3xl md:text-4xl font-serif text-foreground font-medium">Hola, soy Alba García.</h2>
+            <p className="text-sm font-medium text-primary tracking-wider uppercase">Psicóloga y Neuropsicóloga</p>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Como psicóloga clínica, mi objetivo es ofrecerte un espacio de escucha libre de juicios, donde podamos explorar juntos las dificultades que atraviesas y encontrar herramientas eficaces para mejorar tu calidad de vida.
+              Mi objetivo es ofrecerte un acompañamiento profesional, cercano y basado en la evidencia científica para ayudarte a vivir mejor. Creo en un espacio de escucha libre de juicios donde podamos explorar juntos lo que te ocurre y encontrar herramientas eficaces.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Trabajo desde un enfoque integrador, combinando técnicas cognitivo-conductuales, terapias de tercera generación y una profunda base humanista.
+              Trabajo con un enfoque integrador que combina TCC, ACT, DBT y Análisis Funcional, adaptando siempre la intervención a tus necesidades. Además, cuento con formación especializada en Neuropsicología clínica.
             </p>
             <div className="pt-4">
               <Link href="/sobre-mi" className="inline-flex items-center text-primary font-medium hover:underline underline-offset-4">
