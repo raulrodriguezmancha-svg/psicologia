@@ -3,20 +3,30 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API for Alba García Santillana - Psicología
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: bookings
+    description: Appointment bookings
+  - name: reviews
+    description: Client reviews/testimonials
+  - name: services
+    description: Psychology services offered
+  - name: availability
+    description: Calendar availability
+  - name: payments
+    description: Payment deposits
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +34,208 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /services:
+    get:
+      operationId: listServices
+      tags: [services]
+      summary: List all psychology services
+      responses:
+        "200":
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+
+  /availability:
+    get:
+      operationId: getAvailability
+      tags: [availability]
+      summary: Get available appointment slots
+      parameters:
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: string
+            description: "Month in YYYY-MM format"
+      responses:
+        "200":
+          description: Available time slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeSlot"
+
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List all bookings (admin)
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a new booking request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Invalid request
+
+  /bookings/{id}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get a specific booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingStatusUpdate"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/stats:
+    get:
+      operationId: getBookingStats
+      tags: [bookings]
+      summary: Get booking statistics summary
+      responses:
+        "200":
+          description: Booking stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingStats"
+
+  /reviews:
+    get:
+      operationId: listReviews
+      tags: [reviews]
+      summary: List approved reviews
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Submit a new review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Review submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/stats:
+    get:
+      operationId: getReviewStats
+      tags: [reviews]
+      summary: Get review statistics (average rating, count)
+      responses:
+        "200":
+          description: Review statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewStats"
+
+  /payments/create-checkout:
+    post:
+      operationId: createPaymentCheckout
+      tags: [payments]
+      summary: Create a Stripe checkout session for the booking deposit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentCheckoutInput"
+      responses:
+        "200":
+          description: Checkout session URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentCheckoutResult"
+
+  /payments/webhook:
+    post:
+      operationId: handlePaymentWebhook
+      tags: [payments]
+      summary: Handle Stripe webhook events
+      responses:
+        "200":
+          description: Webhook handled
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +243,194 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Service:
+      type: object
+      required: [id, name, description, duration, price, depositAmount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        duration:
+          type: integer
+          description: Duration in minutes
+        price:
+          type: number
+          description: Full session price in EUR
+        depositAmount:
+          type: number
+          description: Required deposit amount in EUR
+        isOnline:
+          type: boolean
+        isInPerson:
+          type: boolean
+
+    TimeSlot:
+      type: object
+      required: [date, time, available]
+      properties:
+        date:
+          type: string
+          description: "Date in YYYY-MM-DD"
+        time:
+          type: string
+          description: "Time in HH:MM"
+        available:
+          type: boolean
+
+    Booking:
+      type: object
+      required: [id, clientName, clientEmail, clientPhone, serviceId, appointmentDate, appointmentTime, status, depositPaid, createdAt]
+      properties:
+        id:
+          type: integer
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        clientPhone:
+          type: string
+        serviceId:
+          type: integer
+        serviceName:
+          type: ["string", "null"]
+        appointmentDate:
+          type: string
+        appointmentTime:
+          type: string
+        notes:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+        depositPaid:
+          type: boolean
+        depositAmount:
+          type: ["number", "null"]
+        stripeSessionId:
+          type: ["string", "null"]
+        calendarEventId:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    BookingInput:
+      type: object
+      required: [clientName, clientEmail, clientPhone, serviceId, appointmentDate, appointmentTime]
+      properties:
+        clientName:
+          type: string
+          minLength: 2
+        clientEmail:
+          type: string
+          format: email
+        clientPhone:
+          type: string
+        serviceId:
+          type: integer
+        appointmentDate:
+          type: string
+          description: "Date in YYYY-MM-DD"
+        appointmentTime:
+          type: string
+          description: "Time in HH:MM"
+        notes:
+          type: string
+
+    BookingStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+
+    BookingStats:
+      type: object
+      required: [total, pending, confirmed, completed, cancelled, depositsPaid]
+      properties:
+        total:
+          type: integer
+        pending:
+          type: integer
+        confirmed:
+          type: integer
+        completed:
+          type: integer
+        cancelled:
+          type: integer
+        depositsPaid:
+          type: integer
+
+    Review:
+      type: object
+      required: [id, authorName, rating, comment, approved, createdAt]
+      properties:
+        id:
+          type: integer
+        authorName:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        approved:
+          type: boolean
+        createdAt:
+          type: string
+
+    ReviewInput:
+      type: object
+      required: [authorName, rating, comment]
+      properties:
+        authorName:
+          type: string
+          minLength: 2
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          minLength: 10
+
+    ReviewStats:
+      type: object
+      required: [averageRating, totalReviews, ratingDistribution]
+      properties:
+        averageRating:
+          type: number
+        totalReviews:
+          type: integer
+        ratingDistribution:
+          type: object
+          properties:
+            "1": { type: integer }
+            "2": { type: integer }
+            "3": { type: integer }
+            "4": { type: integer }
+            "5": { type: integer }
+
+    PaymentCheckoutInput:
+      type: object
+      required: [bookingId, depositAmount]
+      properties:
+        bookingId:
+          type: integer
+        depositAmount:
+          type: number
+
+    PaymentCheckoutResult:
+      type: object
+      required: [checkoutUrl, sessionId]
+      properties:
+        checkoutUrl:
+          type: string
+        sessionId:
+          type: string
