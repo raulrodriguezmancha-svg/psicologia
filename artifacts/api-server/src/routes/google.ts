@@ -4,7 +4,12 @@ import { eq } from "drizzle-orm";
 import { google } from "googleapis";
 import { logger } from "../lib/logger";
 
-const SCOPES = ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/calendar.events"];
+const SCOPES = [
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/userinfo.profile",
+];
 
 function getOAuth2Client() {
   return new google.auth.OAuth2(
@@ -37,8 +42,10 @@ router.get("/google/callback", async (req, res): Promise<void> => {
     const oauth2Client = getOAuth2Client();
     const { tokens } = await oauth2Client.getToken(code);
 
-    if (!tokens.refresh_token) {
-      res.status(400).send("No se recibió refresh token. Revoca el acceso en myaccount.google.com y vuelve a intentar.");
+    logger.info({ hasAccessToken: !!tokens.access_token, hasRefreshToken: !!tokens.refresh_token }, "Tokens recibidos de Google");
+
+    if (!tokens.access_token) {
+      res.status(400).send("No se recibió access token de Google");
       return;
     }
 
