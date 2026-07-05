@@ -6,7 +6,7 @@ async function sendEmailJS(templateId: string, templateParams: Record<string, un
   const serviceId = process.env.EMAILJS_SERVICE_ID;
   const publicKey = process.env.EMAILJS_PUBLIC_KEY;
 
-  logger.info({ serviceId, hasPublicKey: !!publicKey, publicKeyLength: publicKey?.length }, "EmailJS config");
+  logger.info({ serviceId, publicKeyRaw: publicKey, publicKeyType: typeof publicKey, publicKeyLength: publicKey?.length }, "EmailJS config debug");
 
   if (!serviceId || !publicKey) {
     logger.warn("[EMAIL - no enviado, EMAILJS_SERVICE_ID o EMAILJS_PUBLIC_KEY no configurado]");
@@ -14,17 +14,19 @@ async function sendEmailJS(templateId: string, templateParams: Record<string, un
   }
 
   try {
+    const payload = {
+      service_id: serviceId,
+      template_id: templateId,
+      template_params: templateParams,
+      public_key: publicKey,
+    };
+
+    logger.info({ serviceId, templateId, publicKeyFirst4: publicKey?.slice(0, 4) }, "EmailJS sending");
+
     const response = await fetch(EMAILJS_API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${publicKey}`,
-      },
-      body: JSON.stringify({
-        service_id: serviceId,
-        template_id: templateId,
-        template_params: templateParams,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
