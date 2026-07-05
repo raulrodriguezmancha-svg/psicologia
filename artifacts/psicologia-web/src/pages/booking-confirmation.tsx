@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, Link } from "wouter";
+import { Link } from "wouter";
 import { CheckCircle, Calendar, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,8 +24,7 @@ function formatDate(d: string) {
 }
 
 export default function BookingConfirmation() {
-  const [location] = useLocation();
-  const params = new URLSearchParams(location.split("?")[1] ?? "");
+  const params = new URLSearchParams(window.location.search);
   const bookingId = params.get("booking_id");
 
   const [booking, setBooking] = useState<Booking | null>(null);
