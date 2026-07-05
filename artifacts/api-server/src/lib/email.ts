@@ -1,4 +1,5 @@
 import { logger } from "./logger";
+import nodemailer from "nodemailer";
 
 interface EmailOptions {
   to: string;
@@ -6,23 +7,43 @@ interface EmailOptions {
   html: string;
 }
 
-export async function sendEmail(options: EmailOptions): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.FROM_EMAIL ?? "noreply@albagarcia-psicologia.com";
+let transporter: nodemailer.Transporter | null = null;
 
-  if (!apiKey) {
+function getTransporter(): nodemailer.Transporter | null {
+  if (transporter) return transporter;
+
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+
+  if (!user || !pass) {
+    return null;
+  }
+
+  transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+
+  return transporter;
+}
+
+export async function sendEmail(options: EmailOptions): Promise<void> {
+  const fromName = process.env.FROM_NAME ?? "Alba García Santillana";
+  const gmailUser = process.env.GMAIL_USER;
+
+  const transport = getTransporter();
+
+  if (!transport) {
     logger.info(
       { to: options.to, subject: options.subject },
-      "[EMAIL - no enviado, configura RESEND_API_KEY] " + options.subject
+      "[EMAIL - no enviado, configura GMAIL_USER y GMAIL_APP_PASSWORD] " + options.subject
     );
     return;
   }
 
   try {
-    const { Resend } = await import("resend");
-    const resend = new Resend(apiKey);
-    await resend.emails.send({
-      from: `Alba García Santillana <${fromEmail}>`,
+    await transport.sendMail({
+      from: `"${fromName}" <${gmailUser}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
