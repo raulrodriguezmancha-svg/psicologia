@@ -86,7 +86,7 @@ export default function BookingConfirmation() {
               ["Servicio", booking.serviceName],
               ["Fecha", formatDate(booking.appointmentDate)],
               ["Hora", booking.appointmentTime],
-              ["Señal abonada", `${booking.depositAmount ?? 0}€`],
+              ...(booking.depositAmount > 0 ? [["Señal abonada", `${booking.depositAmount}€`]] : []),
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between text-sm border-b border-border/50 pb-3 last:border-0 last:pb-0">
                 <span className="text-muted-foreground">{label}</span>

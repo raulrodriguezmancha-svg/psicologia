@@ -151,15 +151,10 @@ export default function Booking() {
 
       const booking = await bookRes.json();
 
-      if (selectedService.price === 0) {
-        window.location.href = `${API.replace("/api", "")}/reservar/confirmacion?booking_id=${booking.id}&session_id=free`;
-        return;
-      }
-
       const checkoutRes = await fetch(`${API}/payments/create-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId: booking.id, depositAmount: booking.depositAmount ?? selectedService.depositAmount }),
+        body: JSON.stringify({ bookingId: booking.id, depositAmount: selectedService.price === 0 ? 0 : (booking.depositAmount ?? selectedService.depositAmount) }),
       });
 
       if (!checkoutRes.ok) {
@@ -183,7 +178,7 @@ export default function Booking() {
       <div className="bg-secondary/40 py-12 md:py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-serif text-foreground font-medium mb-3">Reservar sesión</h1>
-          <p className="text-muted-foreground text-lg">Reserva online en pocos pasos. Pago de señal seguro con Stripe.</p>
+          <p className="text-muted-foreground text-lg">Reserva online en pocos pasos.</p>
         </div>
       </div>
 
@@ -227,10 +222,10 @@ export default function Booking() {
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{svc.description}</p>
                         <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1"><Clock size={14}/> {svc.duration} min</span>
-                          <span className="flex items-center gap-1"><Euro size={14}/> Señal: {svc.depositAmount}€</span>
+                          {svc.depositAmount > 0 && <span className="flex items-center gap-1"><Euro size={14}/> Señal: {svc.depositAmount}€</span>}
                         </div>
                       </div>
-                      <span className="text-primary font-semibold text-xl shrink-0">{svc.price}€</span>
+                      <span className="text-primary font-semibold text-xl shrink-0">{svc.price === 0 ? "Gratuito" : `${svc.price}€`}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -247,7 +242,7 @@ export default function Booking() {
                 <ChevronLeft size={16} /> Cambiar servicio
               </button>
               <div className="text-sm font-medium text-foreground bg-secondary/50 px-3 py-1.5 rounded-full">
-                {selectedService.name} · {selectedService.depositAmount}€ señal
+                {selectedService.name} · {selectedService.price === 0 ? "Gratuito" : `${selectedService.depositAmount}€ señal`}
               </div>
             </div>
 
@@ -398,20 +393,22 @@ export default function Booking() {
               </CardContent>
             </Card>
 
-            <div className="mt-4 bg-secondary/30 rounded-xl p-4 text-sm text-muted-foreground">
-              <strong className="text-foreground">Resumen del pago:</strong>
-              <div className="mt-2 space-y-1">
-                <div className="flex justify-between"><span>Señal de reserva (se descuenta del total)</span><span className="font-medium text-foreground">{selectedService?.depositAmount}€</span></div>
-                <div className="flex justify-between text-xs"><span>Precio total de la sesión</span><span>{selectedService?.price}€</span></div>
+            {selectedService && selectedService.price > 0 && (
+              <div className="mt-4 bg-secondary/30 rounded-xl p-4 text-sm text-muted-foreground">
+                <strong className="text-foreground">Resumen del pago:</strong>
+                <div className="mt-2 space-y-1">
+                  <div className="flex justify-between"><span>Señal de reserva (se descuenta del total)</span><span className="font-medium text-foreground">{selectedService?.depositAmount}€</span></div>
+                  <div className="flex justify-between text-xs"><span>Precio total de la sesión</span><span>{selectedService?.price}€</span></div>
+                </div>
               </div>
-            </div>
+            )}
 
             <p className="text-xs text-muted-foreground mt-3 text-center">
               Tus datos están protegidos por el secreto profesional y el RGPD. Cancelación gratuita con 48 h de antelación.
             </p>
 
             <Button onClick={() => setStep(3)} disabled={!form.name || !form.email || !form.phone} className="w-full rounded-full h-12 mt-4">
-              Revisar y pagar
+              {selectedService?.price === 0 ? "Confirmar reserva" : "Revisar y pagar"}
             </Button>
           </div>
         )}
@@ -454,13 +451,22 @@ export default function Booking() {
 
             <Card className="mb-6 border-primary/30 bg-primary/5">
               <CardContent className="p-6">
-                <div className="flex justify-between items-center text-lg font-medium">
-                  <span>Señal a pagar ahora</span>
-                  <span className="text-primary text-2xl font-serif">{selectedService?.depositAmount}€</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Este importe se descontará del precio total ({selectedService?.price}€) en el momento de la sesión.
-                </p>
+                {selectedService?.price === 0 ? (
+                  <div className="text-center">
+                    <p className="text-lg font-medium text-foreground">Sesión gratuita</p>
+                    <p className="text-sm text-muted-foreground mt-1">No se requiere pago. Tu cita se confirmará automáticamente.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center text-lg font-medium">
+                      <span>Señal a pagar ahora</span>
+                      <span className="text-primary text-2xl font-serif">{selectedService?.depositAmount}€</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Este importe se descontará del precio total ({selectedService?.price}€) en el momento de la sesión.
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -470,15 +476,19 @@ export default function Booking() {
               className="w-full rounded-full h-14 text-base"
             >
               {submitting ? (
-                <><Loader2 className="animate-spin mr-2" size={18}/> Redirigiendo al pago...</>
+                <><Loader2 className="animate-spin mr-2" size={18}/> Procesando...</>
+              ) : selectedService?.price === 0 ? (
+                "Confirmar reserva gratuita"
               ) : (
                 `Pagar señal ${selectedService?.depositAmount}€ con Stripe`
               )}
             </Button>
 
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              Pago seguro con Stripe. No almacenamos datos de tarjeta. 🔒
-            </p>
+            {selectedService && selectedService.price > 0 && (
+              <p className="text-xs text-muted-foreground text-center mt-4">
+                Pago seguro con Stripe. No almacenamos datos de tarjeta.
+              </p>
+            )}
           </div>
         )}
       </div>
