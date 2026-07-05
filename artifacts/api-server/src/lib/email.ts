@@ -1,5 +1,8 @@
 import { logger } from "./logger";
 import nodemailer from "nodemailer";
+import dns from "dns";
+
+dns.setDefaultResultOrder("ipv4first");
 
 interface EmailOptions {
   to: string;
@@ -21,13 +24,12 @@ function getTransporter(): nodemailer.Transporter | null {
 
   transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
     auth: { user, pass },
     connectionTimeout: 10000,
     socketTimeout: 10000,
     tls: { rejectUnauthorized: false },
-    family: 4,
   });
 
   return transporter;
