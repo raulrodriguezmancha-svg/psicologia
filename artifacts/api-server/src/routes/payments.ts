@@ -3,7 +3,7 @@ import { db, bookingsTable, servicesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { CreatePaymentCheckoutBody, CreatePaymentCheckoutResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
-import { sendBookingConfirmationEmail } from "../lib/email";
+import { sendBookingConfirmationEmail, sendAdminBookingNotification } from "../lib/email";
 import { createCalendarEvent } from "./google";
 
 const router: IRouter = Router();
@@ -74,6 +74,15 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
       meetLink: meetLink ?? undefined,
     }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (free)"));
 
+    sendAdminBookingNotification({
+      clientName: booking.clientName,
+      clientEmail: booking.clientEmail,
+      serviceName: service?.name ?? "Sesión de psicología",
+      date: dateFormatted,
+      time: booking.appointmentTime,
+      depositAmount: 0,
+    }).catch(err => logger.error({ err, bookingId }, "Error al enviar email admin (free)"));
+
     logger.info({ bookingId }, "Reserva gratuita confirmada sin pago");
 
     res.json(
@@ -130,6 +139,15 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
       depositAmount: booking.depositAmount ?? 0,
       meetLink: meetLink ?? undefined,
     }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (mock)"));
+
+    sendAdminBookingNotification({
+      clientName: booking.clientName,
+      clientEmail: booking.clientEmail,
+      serviceName: service?.name ?? "Sesión de psicología",
+      date: dateFormatted,
+      time: booking.appointmentTime,
+      depositAmount: booking.depositAmount ?? 0,
+    }).catch(err => logger.error({ err, bookingId }, "Error al enviar email admin (mock)"));
 
     res.json(
       CreatePaymentCheckoutResponse.parse({
@@ -270,6 +288,15 @@ router.post("/payments/webhook", async (req, res): Promise<void> => {
             depositAmount: updated.depositAmount ?? 0,
             meetLink: meetLink ?? undefined,
           }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (webhook)"));
+
+          sendAdminBookingNotification({
+            clientName: updated.clientName,
+            clientEmail: updated.clientEmail,
+            serviceName: service?.name ?? "Sesión de psicología",
+            date: dateFormatted,
+            time: updated.appointmentTime,
+            depositAmount: updated.depositAmount ?? 0,
+          }).catch(err => logger.error({ err, bookingId }, "Error al enviar email admin (webhook)"));
 
           logger.info({ bookingId }, "Reserva confirmada tras pago Stripe");
         }

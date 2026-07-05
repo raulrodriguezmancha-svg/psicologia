@@ -80,3 +80,37 @@ export async function sendReviewInvitationEmail(params: {
     logger.error({ err, to: params.to }, "Error al enviar email de reseña via EmailJS");
   }
 }
+
+export async function sendAdminBookingNotification(params: {
+  clientName: string;
+  clientEmail: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  depositAmount: number;
+}): Promise<void> {
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_ADMIN_TEMPLATE_ID;
+
+  if (!serviceId || !templateId) {
+    logger.warn("[EMAIL - no enviado, EMAILJS_ADMIN_TEMPLATE_ID no configurado]");
+    return;
+  }
+
+  initEmailJS();
+
+  try {
+    await emailjs.send(serviceId, templateId, {
+      to_email: "albagspsicologia@gmail.com",
+      client_name: params.clientName,
+      client_email: params.clientEmail,
+      service_name: params.serviceName,
+      date: params.date,
+      time: params.time,
+      deposit_amount: String(params.depositAmount),
+    });
+    logger.info("Email de notificación admin enviado via EmailJS");
+  } catch (err) {
+    logger.error({ err }, "Error al enviar email de notificación admin via EmailJS");
+  }
+}
