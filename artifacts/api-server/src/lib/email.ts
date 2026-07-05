@@ -14,19 +14,15 @@ async function sendEmailJS(templateId: string, templateParams: Record<string, un
   }
 
   try {
-    const payload = {
-      service_id: serviceId,
-      template_id: templateId,
-      template_params: templateParams,
-      public_key: publicKey,
-    };
-
-    logger.info({ serviceId, templateId, publicKeyFirst4: publicKey?.slice(0, 4) }, "EmailJS sending");
+    const formData = new FormData();
+    formData.append("service_id", serviceId);
+    formData.append("template_id", templateId);
+    formData.append("public_key", publicKey);
+    formData.append("template_params", JSON.stringify(templateParams));
 
     const response = await fetch(EMAILJS_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: formData,
     });
 
     if (!response.ok) {
