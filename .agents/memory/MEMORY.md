@@ -1,1 +1,0 @@
-- [Psicologia web stack](psicologia-stack.md) — full-stack psychology booking site: React+Vite frontend + Express API + Drizzle+PostgreSQL + Stripe + Resend emails + JWT admin.
