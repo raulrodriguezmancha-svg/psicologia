@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 import pinoHttp from "pino-http";
 import router from "./routes";
@@ -23,6 +24,14 @@ app.use(
 );
 
 app.use(cors());
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self';"
+  );
+  next();
+});
 
 // El webhook de Stripe necesita el body como Buffer — debe ir ANTES de express.json()
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
