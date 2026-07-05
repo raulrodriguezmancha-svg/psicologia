@@ -173,6 +173,60 @@ router.delete("/admin/slots/blocked/:id", requireAdmin, async (req, res): Promis
   res.sendStatus(204);
 });
 
+// ─── Servicios ────────────────────────────────────────────────────────────────
+router.get("/admin/services", requireAdmin, async (req, res): Promise<void> => {
+  const services = await db.select().from(servicesTable);
+  res.json(services);
+});
+
+router.post("/admin/services", requireAdmin, async (req, res): Promise<void> => {
+  const { name, description, duration, price, depositAmount } = req.body as {
+    name?: string; description?: string; duration?: number; price?: number; depositAmount?: number;
+  };
+  if (!name || !description || !duration || price == null || depositAmount == null) {
+    res.status(400).json({ error: "Todos los campos son requeridos" });
+    return;
+  }
+  const [service] = await db.insert(servicesTable).values({
+    name, description, duration, price, depositAmount,
+  }).returning();
+  res.status(201).json(service);
+});
+
+router.patch("/admin/services/:id", requireAdmin, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id as string, 10);
+  const { name, description, duration, price, depositAmount } = req.body as {
+    name?: string; description?: string; duration?: number; price?: number; depositAmount?: number;
+  };
+  const updates: Record<string, unknown> = {};
+  if (name !== undefined) updates.name = name;
+  if (description !== undefined) updates.description = description;
+  if (duration !== undefined) updates.duration = duration;
+  if (price !== undefined) updates.price = price;
+  if (depositAmount !== undefined) updates.depositAmount = depositAmount;
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No hay campos para actualizar" });
+    return;
+  }
+  const [updated] = await db.update(servicesTable).set(updates).where(eq(servicesTable.id, id)).returning();
+  if (!updated) {
+    res.status(404).json({ error: "Servicio no encontrado" });
+    return;
+  }
+  res.json(updated);
+});
+
+router.delete("/admin/services/:id", requireAdmin, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id as string, 10);
+  const [deleted] = await db.delete(servicesTable).where(eq(servicesTable.id, id)).returning();
+  if (!deleted) {
+    res.status(404).json({ error: "Servicio no encontrado" });
+    return;
+  }
+  res.sendStatus(204);
+});
+
 // ─── Reseñas ──────────────────────────────────────────────────────────────────
 router.get("/admin/reviews", requireAdmin, async (req, res): Promise<void> => {
   const reviews = await db

@@ -151,6 +151,11 @@ export default function Booking() {
 
       const booking = await bookRes.json();
 
+      if (selectedService.price === 0) {
+        window.location.href = `${API.replace("/api", "")}/reservar/confirmacion?booking_id=${booking.id}&session_id=free`;
+        return;
+      }
+
       const checkoutRes = await fetch(`${API}/payments/create-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -549,6 +549,104 @@ function ResenasTab({ token }: { token: string }) {
   );
 }
 
+// ─── Servicios ────────────────────────────────────────────────────────────────
+type Service = { id: number; name: string; description: string; duration: number; price: number; depositAmount: number };
+
+function ServicesTab({ token }: { token: string }) {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [showNew, setShowNew] = useState(false);
+  const [form, setForm] = useState({ name: "", description: "", duration: 60, price: 0, depositAmount: 0 });
+
+  const load = useCallback(async () => {
+    const res = await authFetch(token, `${API}/admin/services`);
+    if (res.ok) setServices(await res.json());
+    setLoading(false);
+  }, [token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  function startEdit(s: Service) {
+    setEditing(s.id);
+    setForm({ name: s.name, description: s.description, duration: s.duration, price: s.price, depositAmount: s.depositAmount });
+  }
+
+  function startNew() {
+    setShowNew(true);
+    setEditing(null);
+    setForm({ name: "", description: "", duration: 60, price: 0, depositAmount: 0 });
+  }
+
+  async function handleSave() {
+    if (editing) {
+      await authFetch(token, `${API}/admin/services/${editing}`, { method: "PATCH", body: JSON.stringify(form) });
+    } else {
+      await authFetch(token, `${API}/admin/services`, { method: "POST", body: JSON.stringify(form) });
+    }
+    setEditing(null);
+    setShowNew(false);
+    load();
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm("¿Eliminar este servicio?")) return;
+    await authFetch(token, `${API}/admin/services/${id}`, { method: "DELETE" });
+    load();
+  }
+
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" size={24}/></div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-serif text-xl font-medium">Servicios</h2>
+        <Button size="sm" onClick={startNew} className="bg-primary text-primary-foreground">+ Nuevo servicio</Button>
+      </div>
+
+      {(showNew || editing !== null) && (
+        <Card className="border-primary/30 bg-card">
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><Label>Nombre</Label><Input value={form.name} onChange={e => setForm({...form, name: e.target.value})}/></div>
+              <div><Label>Duración (min)</Label><Input type="number" value={form.duration} onChange={e => setForm({...form, duration: +e.target.value})}/></div>
+              <div><Label>Precio (€)</Label><Input type="number" value={form.price} onChange={e => setForm({...form, price: +e.target.value})}/></div>
+              <div><Label>Señal (€)</Label><Input type="number" value={form.depositAmount} onChange={e => setForm({...form, depositAmount: +e.target.value})}/></div>
+            </div>
+            <div><Label>Descripción</Label><textarea className="w-full border border-border rounded-md p-2 text-sm min-h-[80px]" value={form.description} onChange={e => setForm({...form, description: e.target.value})}/></div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSave}>Guardar</Button>
+              <Button size="sm" variant="ghost" onClick={() => { setEditing(null); setShowNew(false); }}>Cancelar</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-3">
+        {services.map(s => (
+          <Card key={s.id} className="border-border bg-card">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">{s.name}</span>
+                  <Badge variant="outline">{s.duration} min</Badge>
+                  <Badge variant="outline" className={s.price === 0 ? "bg-green-50 text-green-700" : ""}>{s.price}€</Badge>
+                  {s.price === 0 && <Badge className="bg-green-100 text-green-700 border-green-200">Gratis</Badge>}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{s.description}</p>
+              </div>
+              <div className="flex gap-2 ml-4">
+                <Button size="sm" variant="ghost" onClick={() => startEdit(s)}>Editar</Button>
+                <Button size="sm" variant="ghost" className="text-red-600" onClick={() => handleDelete(s.id)}>Eliminar</Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Configuración ────────────────────────────────────────────────────────────
 function ConfigTab() {
   const [googleStatus, setGoogleStatus] = useState<{ connected: boolean; email: string | null }>({ connected: false, email: null });
@@ -630,11 +728,13 @@ function AdminDashboard({ token, onLogout }: { token: string; onLogout: () => vo
         <Tabs defaultValue="reservas">
           <TabsList className="mb-8 bg-card border border-border">
             <TabsTrigger value="reservas" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Reservas</TabsTrigger>
+            <TabsTrigger value="servicios" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Servicios</TabsTrigger>
             <TabsTrigger value="horarios" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Horarios</TabsTrigger>
             <TabsTrigger value="resenas" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Reseñas</TabsTrigger>
             <TabsTrigger value="config" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Settings size={14} className="mr-1"/>Configuración</TabsTrigger>
           </TabsList>
           <TabsContent value="reservas"><ReservasTab token={token}/></TabsContent>
+          <TabsContent value="servicios"><ServicesTab token={token}/></TabsContent>
           <TabsContent value="horarios"><HorariosTab token={token}/></TabsContent>
           <TabsContent value="resenas"><ResenasTab token={token}/></TabsContent>
           <TabsContent value="config"><ConfigTab/></TabsContent>

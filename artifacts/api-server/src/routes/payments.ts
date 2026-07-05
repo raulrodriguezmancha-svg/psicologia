@@ -27,6 +27,63 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
     return;
   }
 
+  if (depositAmount <= 0) {
+    const mockSessionId = `free_session_${bookingId}_${Date.now()}`;
+    await db
+      .update(bookingsTable)
+      .set({ stripeSessionId: mockSessionId, depositPaid: true, status: "confirmed" })
+      .where(eq(bookingsTable.id, bookingId));
+
+    const [service] = await db
+      .select({ name: servicesTable.name, duration: servicesTable.duration })
+      .from(servicesTable)
+      .where(eq(servicesTable.id, booking.serviceId));
+
+    const dateFormatted = new Date(booking.appointmentDate + "T00:00:00").toLocaleDateString(
+      "es-ES",
+      { weekday: "long", day: "numeric", month: "long", year: "numeric" }
+    );
+
+    let meetLink: string | null = null;
+    try {
+      meetLink = await createCalendarEvent({
+        summary: `${service?.name ?? "Sesión"} — ${booking.clientName}`,
+        description: `Sesión de psicología con ${booking.clientName}\nEmail: ${booking.clientEmail}\nTeléfono: ${booking.clientPhone}${booking.notes ? `\nNotas: ${booking.notes}` : ""}`,
+        date: booking.appointmentDate,
+        time: booking.appointmentTime,
+        durationMinutes: service?.duration ?? 60,
+      });
+      if (meetLink) {
+        await db.update(bookingsTable).set({ calendarEventId: meetLink }).where(eq(bookingsTable.id, bookingId));
+      }
+    } catch (err) {
+      logger.error({ err, bookingId }, "Error al crear evento en Google Calendar (free)");
+    }
+
+    await sendEmail({
+      to: booking.clientEmail,
+      subject: "¡Tu cita está confirmada! — Alba García Santillana",
+      html: bookingConfirmationHtml({
+        clientName: booking.clientName,
+        serviceName: service?.name ?? "Sesión de psicología",
+        date: dateFormatted,
+        time: booking.appointmentTime,
+        depositAmount: 0,
+        meetLink: meetLink ?? undefined,
+      }),
+    });
+
+    logger.info({ bookingId }, "Reserva gratuita confirmada sin pago");
+
+    res.json(
+      CreatePaymentCheckoutResponse.parse({
+        checkoutUrl: `${req.protocol}://${req.get("host")}/reservar/confirmacion?booking_id=${bookingId}&session_id=${mockSessionId}`,
+        sessionId: mockSessionId,
+      })
+    );
+    return;
+  }
+
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
   if (!stripeSecretKey) {
