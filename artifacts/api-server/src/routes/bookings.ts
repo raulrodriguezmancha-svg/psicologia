@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, bookingsTable, servicesTable } from "@workspace/db";
-import { eq, count, and } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import {
   ListBookingsResponse,
   CreateBookingBody,

@@ -1,7 +1,6 @@
-import express, { type Express, type Request, type Response, type NextFunction } from "express";
+import express, { type Express } from "express";
 import cors from "cors";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 import pinoHttp from "pino-http";
 import router from "./routes";

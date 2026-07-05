@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, reviewsTable } from "@workspace/db";
-import { eq, avg, count, sql } from "drizzle-orm";
+import { eq, avg, count } from "drizzle-orm";
 import {
   ListReviewsResponse,
   CreateReviewBody,
