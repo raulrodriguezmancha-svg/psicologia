@@ -8,6 +8,10 @@ import { createCalendarEvent } from "./google";
 
 const router: IRouter = Router();
 
+function getBaseUrl(req: any): string {
+  return process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+}
+
 router.post("/payments/create-checkout", async (req, res): Promise<void> => {
   const parsed = CreatePaymentCheckoutBody.safeParse(req.body);
   if (!parsed.success) {
@@ -77,7 +81,7 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
 
     res.json(
       CreatePaymentCheckoutResponse.parse({
-        checkoutUrl: `${req.protocol}://${req.get("host")}/reservar/confirmacion?booking_id=${bookingId}&session_id=${mockSessionId}`,
+        checkoutUrl: `${getBaseUrl(req)}/reservar/confirmacion?booking_id=${bookingId}&session_id=${mockSessionId}`,
         sessionId: mockSessionId,
       })
     );
@@ -135,7 +139,7 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
 
     res.json(
       CreatePaymentCheckoutResponse.parse({
-        checkoutUrl: `${req.protocol}://${req.get("host")}/reservar/confirmacion?booking_id=${bookingId}&session_id=${mockSessionId}`,
+        checkoutUrl: `${getBaseUrl(req)}/reservar/confirmacion?booking_id=${bookingId}&session_id=${mockSessionId}`,
         sessionId: mockSessionId,
       })
     );
@@ -146,9 +150,7 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
     const stripe = (await import("stripe")).default;
     const stripeClient = new stripe(stripeSecretKey);
 
-    const domains = process.env.REPLIT_DOMAINS?.split(",") ?? [];
-    const baseUrl =
-      domains.length > 0 ? `https://${domains[0]}` : `${req.protocol}://${req.get("host")}`;
+    const baseUrl = getBaseUrl(req);
 
     const [service] = await db
       .select({ name: servicesTable.name })
