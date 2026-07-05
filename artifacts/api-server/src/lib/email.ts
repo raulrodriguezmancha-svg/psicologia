@@ -20,10 +20,14 @@ function getTransporter(): nodemailer.Transporter | null {
   }
 
   transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: { user, pass },
     connectionTimeout: 10000,
     socketTimeout: 10000,
+    tls: { rejectUnauthorized: false },
+    family: 4,
   });
 
   return transporter;
