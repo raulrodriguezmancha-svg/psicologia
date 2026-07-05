@@ -12,9 +12,16 @@ async function sendEmailJS(templateId: string, templateParams: Record<string, un
   }
 
   try {
+    const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (privateKey) {
+      headers["Authorization"] = `Bearer ${privateKey}`;
+    }
+
     const response = await fetch(EMAILJS_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         service_id: serviceId,
         template_id: templateId,
