@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import path from "node:path";
+import fs from "node:fs";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
@@ -31,11 +32,14 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-const frontendDist = path.resolve(process.cwd(), "../psicologia-web/dist/public");
+const frontendDist = path.resolve(__dirname, "../../psicologia-web/dist/public");
+const indexHtml = path.join(frontendDist, "index.html");
+
+logger.info({ frontendDist, indexHtml, exists: fs.existsSync(indexHtml) }, "Frontend static path");
 
 app.use(express.static(frontendDist));
 app.get("/{*splat}", (req, res) => {
-  res.sendFile(path.join(frontendDist, "index.html"));
+  res.sendFile(indexHtml);
 });
 
 export default app;
