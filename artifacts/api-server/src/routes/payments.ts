@@ -3,7 +3,7 @@ import { db, bookingsTable, servicesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { CreatePaymentCheckoutBody, CreatePaymentCheckoutResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
-import { sendEmail, bookingConfirmationHtml } from "../lib/email";
+import { sendBookingConfirmationEmail } from "../lib/email";
 import { createCalendarEvent } from "./google";
 
 const router: IRouter = Router();
@@ -64,17 +64,14 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
       logger.error({ err, bookingId }, "Error al crear evento en Google Calendar (free)");
     }
 
-    sendEmail({
+    sendBookingConfirmationEmail({
       to: booking.clientEmail,
-      subject: "¡Tu cita está confirmada! — Alba García Santillana",
-      html: bookingConfirmationHtml({
-        clientName: booking.clientName,
-        serviceName: service?.name ?? "Sesión de psicología",
-        date: dateFormatted,
-        time: booking.appointmentTime,
-        depositAmount: 0,
-        meetLink: meetLink ?? undefined,
-      }),
+      clientName: booking.clientName,
+      serviceName: service?.name ?? "Sesión de psicología",
+      date: dateFormatted,
+      time: booking.appointmentTime,
+      depositAmount: 0,
+      meetLink: meetLink ?? undefined,
     }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (free)"));
 
     logger.info({ bookingId }, "Reserva gratuita confirmada sin pago");
@@ -124,17 +121,14 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
       logger.error({ err, bookingId }, "Error al crear evento en Google Calendar (mock)");
     }
 
-    sendEmail({
+    sendBookingConfirmationEmail({
       to: booking.clientEmail,
-      subject: "¡Tu cita está confirmada! — Alba García Santillana",
-      html: bookingConfirmationHtml({
-        clientName: booking.clientName,
-        serviceName: service?.name ?? "Sesión de psicología",
-        date: dateFormatted,
-        time: booking.appointmentTime,
-        depositAmount: booking.depositAmount ?? 0,
-        meetLink: meetLink ?? undefined,
-      }),
+      clientName: booking.clientName,
+      serviceName: service?.name ?? "Sesión de psicología",
+      date: dateFormatted,
+      time: booking.appointmentTime,
+      depositAmount: booking.depositAmount ?? 0,
+      meetLink: meetLink ?? undefined,
     }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (mock)"));
 
     res.json(
@@ -267,17 +261,14 @@ router.post("/payments/webhook", async (req, res): Promise<void> => {
             logger.error({ err, bookingId }, "Error al crear evento en Google Calendar");
           }
 
-          sendEmail({
+          sendBookingConfirmationEmail({
             to: updated.clientEmail,
-            subject: "¡Tu cita está confirmada! — Alba García Santillana",
-            html: bookingConfirmationHtml({
-              clientName: updated.clientName,
-              serviceName: service?.name ?? "Sesión de psicología",
-              date: dateFormatted,
-              time: updated.appointmentTime,
-              depositAmount: updated.depositAmount ?? 0,
-              meetLink: meetLink ?? undefined,
-            }),
+            clientName: updated.clientName,
+            serviceName: service?.name ?? "Sesión de psicología",
+            date: dateFormatted,
+            time: updated.appointmentTime,
+            depositAmount: updated.depositAmount ?? 0,
+            meetLink: meetLink ?? undefined,
           }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (webhook)"));
 
           logger.info({ bookingId }, "Reserva confirmada tras pago Stripe");

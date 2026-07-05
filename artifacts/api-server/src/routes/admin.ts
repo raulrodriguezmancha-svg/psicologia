@@ -4,7 +4,7 @@ import { eq, desc, and, gte, lte } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { requireAdmin } from "../middleware/auth";
-import { sendEmail, reviewInvitationHtml } from "../lib/email";
+import { sendReviewInvitationEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -103,14 +103,11 @@ router.patch("/admin/bookings/:id/status", requireAdmin, async (req, res): Promi
       const baseUrl = domains.length > 0 ? `https://${domains[0]}` : "http://localhost";
       const reviewUrl = `${baseUrl}/resena/${token}`;
 
-      await sendEmail({
+      await sendReviewInvitationEmail({
         to: updated.clientEmail,
-        subject: "¿Cómo fue tu experiencia? — Alba García Santillana",
-        html: reviewInvitationHtml({
-          clientName: updated.clientName,
-          reviewUrl,
-          expiresAt: expiresAt.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }),
-        }),
+        clientName: updated.clientName,
+        reviewUrl,
+        expiresAt: expiresAt.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }),
       });
 
       req.log.info({ bookingId: id }, "Token de reseña generado y email enviado");
