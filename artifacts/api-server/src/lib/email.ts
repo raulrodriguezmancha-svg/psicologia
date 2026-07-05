@@ -1,8 +1,5 @@
 import { logger } from "./logger";
-import nodemailer from "nodemailer";
-import dns from "dns";
-
-dns.setDefaultResultOrder("ipv4first");
+import { google } from "googleapis";
 
 interface EmailOptions {
   to: string;
@@ -10,55 +7,54 @@ interface EmailOptions {
   html: string;
 }
 
-let transporter: nodemailer.Transporter | null = null;
-
-function getTransporter(): nodemailer.Transporter | null {
-  if (transporter) return transporter;
-
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-
-  if (!user || !pass) {
-    return null;
-  }
-
-  transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: { user, pass },
-    connectionTimeout: 10000,
-    socketTimeout: 10000,
-    tls: { rejectUnauthorized: false },
-  });
-
-  return transporter;
+async function getOAuth2Client() {
+  const { getGoogleAuthForBooking } = await import("../routes/google.js");
+  return getGoogleAuthForBooking();
 }
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
   const fromName = process.env.FROM_NAME ?? "Alba García Santillana";
   const gmailUser = process.env.GMAIL_USER;
 
-  const transport = getTransporter();
-
-  if (!transport) {
-    logger.info(
-      { to: options.to, subject: options.subject },
-      "[EMAIL - no enviado, configura GMAIL_USER y GMAIL_APP_PASSWORD] " + options.subject
-    );
+  if (!gmailUser) {
+    logger.info({ to: options.to, subject: options.subject }, "[EMAIL - no enviado, GMAIL_USER no configurado] " + options.subject);
     return;
   }
 
+  const auth = await getOAuth2Client();
+  if (!auth) {
+    logger.warn("[EMAIL - no enviado, Google no conectado] " + options.subject);
+    return;
+  }
+
+  const boundary = "boundary_" + Math.random().toString(36).slice(2);
+  const rawMessage = [
+    `From: "${fromName}" <${gmailUser}>`,
+    `To: ${options.to}`,
+    `Subject: ${options.subject}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    "",
+    `--${boundary}`,
+    `Content-Type: text/html; charset=UTF-8`,
+    `Content-Transfer-Encoding: base64`,
+    "",
+    Buffer.from(options.html).toString("base64"),
+    `--${boundary}--`,
+  ].join("\r\n");
+
+  const gmail = google.gmail({ version: "v1", auth });
+
   try {
-    await transport.sendMail({
-      from: `"${fromName}" <${gmailUser}>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
+    await gmail.users.messages.send({
+      userId: "me",
+      requestBody: {
+        raw: Buffer.from(rawMessage).toString("base64url"),
+      },
     });
-    logger.info({ to: options.to, subject: options.subject }, "Email enviado");
+    logger.info({ to: options.to, subject: options.subject }, "Email enviado via Gmail API");
   } catch (err) {
-    logger.error({ err, to: options.to }, "Error al enviar email");
+    logger.error({ err, to: options.to }, "Error al enviar email via Gmail API");
   }
 }
 
