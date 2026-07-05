@@ -1,7 +1,6 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
@@ -32,9 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const frontendDist = path.resolve(__dirname, "../../psicologia-web/dist/public");
+const frontendDist = path.resolve(process.cwd(), "../psicologia-web/dist/public");
 
 app.use(express.static(frontendDist));
 app.get("/{*splat}", (req, res) => {
