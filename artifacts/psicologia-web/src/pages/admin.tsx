@@ -579,10 +579,11 @@ function ServicesTab({ token }: { token: string }) {
   }
 
   async function handleSave() {
+    const payload = { ...form, depositAmount: form.price === 0 ? 0 : form.depositAmount };
     if (editing) {
-      await authFetch(token, `${API}/admin/services/${editing}`, { method: "PATCH", body: JSON.stringify(form) });
+      await authFetch(token, `${API}/admin/services/${editing}`, { method: "PATCH", body: JSON.stringify(payload) });
     } else {
-      await authFetch(token, `${API}/admin/services`, { method: "POST", body: JSON.stringify(form) });
+      await authFetch(token, `${API}/admin/services`, { method: "POST", body: JSON.stringify(payload) });
     }
     setEditing(null);
     setShowNew(false);

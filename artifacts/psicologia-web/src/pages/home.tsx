@@ -1,10 +1,23 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Star, Calendar, HeartHandshake } from "lucide-react";
-import { SERVICES, REVIEWS, STATS } from "@/data/static";
+import { ArrowRight, Star, Calendar, HeartHandshake, Loader2 } from "lucide-react";
+import { REVIEWS, STATS } from "@/data/static";
+
+type Service = { id: number; name: string; description: string; duration: number; price: number; depositAmount: number };
 
 export default function Home() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then(r => r.json())
+      .then(setServices)
+      .catch(() => {})
+      .finally(() => setLoadingServices(false));
+  }, []);
   const renderStars = (rating: number) =>
     Array.from({ length: 5 }).map((_, i) => (
       <Star
@@ -155,7 +168,10 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {SERVICES.slice(0, 3).map((service) => (
+            {loadingServices ? (
+              <div className="col-span-3 flex justify-center py-8"><Loader2 className="animate-spin text-primary" size={24}/></div>
+            ) : (
+              services.slice(0, 3).map((service) => (
               <Card
                 key={service.id}
                 className="border-none shadow-lg hover:shadow-xl transition-shadow bg-background flex flex-col"
@@ -171,13 +187,14 @@ export default function Home() {
                     <span className="text-muted-foreground">
                       {service.duration} min
                     </span>
-                    <span className="font-medium text-primary text-lg">
-                      {service.price}€
+                    <span className={`font-medium text-lg ${service.price === 0 ? "text-green-600" : "text-primary"}`}>
+                      {service.price === 0 ? "Gratis" : `${service.price}€`}
                     </span>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            ))
+            )}
           </div>
 
           <div className="text-center mt-12">
