@@ -1,0 +1,178 @@
+Quiero que amplíes la aplicación existente manteniendo exactamente el diseño visual actual. No modifiques la estética, la estructura de las páginas, la paleta de colores, las tipografías, los iconos, las animaciones, el responsive ni la experiencia de usuario, salvo que sea estrictamente necesario para integrar las nuevas funcionalidades. La apariencia de la web debe permanecer prácticamente idéntica.
+
+No reestructures el proyecto si no es necesario. Reutiliza todos los componentes existentes siempre que sea posible y añade únicamente el código necesario para implementar las siguientes funcionalidades.
+
+## 1. Sistema de reservas
+
+Crear un sistema de reservas completo para citas de psicología.
+
+* Mostrar un calendario moderno e intuitivo.
+* Mostrar únicamente las fechas y horas disponibles.
+* No permitir seleccionar horarios ocupados o bloqueados.
+* Comprobar la disponibilidad antes de confirmar una reserva para evitar conflictos si dos personas intentan reservar el mismo horario simultáneamente.
+* Una vez confirmada una reserva, ese horario deberá dejar de estar disponible automáticamente.
+
+Cada reserva deberá almacenar como mínimo:
+
+* Nombre
+* Apellidos
+* Correo electrónico
+* Teléfono
+* Fecha
+* Hora
+* Duración de la sesión
+* Estado de la reserva
+* Fecha de creación
+* Identificador único
+
+---
+
+## 2. Pago online
+
+Integrar Stripe Checkout.
+
+El flujo debe ser el siguiente:
+
+1. El usuario selecciona una fecha y una hora.
+2. Se verifica nuevamente que la hora sigue disponible.
+3. Se crea una sesión de pago mediante Stripe.
+4. El usuario realiza el pago.
+5. Solo cuando Stripe confirme correctamente el pago se almacenará definitivamente la reserva.
+6. Si el usuario cancela el pago o este falla, la reserva no deberá confirmarse.
+
+Gestionar correctamente:
+
+* Pago correcto.
+* Pago cancelado.
+* Pago fallido.
+* Abandono del proceso de pago.
+
+---
+
+## 3. Base de datos
+
+Utilizar Supabase.
+
+Crear una estructura escalable con tablas similares a:
+
+* Usuarios (si fueran necesarios en el futuro).
+* Reservas.
+* Horarios disponibles.
+* Horarios bloqueados.
+* Reseñas.
+* Tokens para reseñas.
+* Configuración.
+
+Diseñar correctamente las relaciones entre tablas.
+
+---
+
+## 4. Panel de administración
+
+Crear un panel privado protegido.
+
+Desde él la psicóloga podrá:
+
+* Añadir horarios disponibles.
+* Eliminar horarios.
+* Bloquear días completos.
+* Bloquear vacaciones.
+* Bloquear horas concretas.
+* Consultar todas las reservas.
+* Buscar reservas.
+* Filtrar por fecha.
+* Filtrar por estado.
+* Marcar una cita como:
+
+  * Pendiente
+  * Confirmada
+  * Completada
+  * Cancelada
+  * No asistió
+* Consultar el historial.
+* Gestionar las reseñas.
+* Aprobar, ocultar o eliminar reseñas.
+
+---
+
+## 5. Sistema de reseñas
+
+Crear un sistema seguro sin necesidad de que los pacientes creen una cuenta ni inicien sesión.
+
+El funcionamiento deberá ser el siguiente:
+
+* Solo podrán dejar una reseña los pacientes cuya cita haya sido marcada como "Completada".
+* Cuando la psicóloga marque una cita como completada desde el panel de administración, el sistema generará automáticamente un token único, aleatorio y seguro asociado únicamente a esa cita.
+* El sistema enviará automáticamente un correo electrónico al paciente con un enlace para escribir su reseña.
+* El enlace contendrá ese token seguro.
+* Al abrir el enlace el sistema deberá comprobar:
+
+  * Que el token existe.
+  * Que pertenece a una cita completada.
+  * Que no ha expirado.
+  * Que todavía no ha sido utilizado.
+* Si todas las comprobaciones son correctas se mostrará el formulario para escribir la reseña.
+* Después de enviar la reseña el token quedará invalidado automáticamente.
+* Cada cita solo podrá generar una única reseña.
+* Las reseñas deberán poder valorarse entre 1 y 5 estrellas.
+* También podrán incluir un comentario.
+* Las reseñas deberán mostrarse públicamente únicamente después de ser aprobadas desde el panel de administración.
+
+---
+
+## 6. Correos automáticos
+
+Preparar el sistema para enviar automáticamente:
+
+* Confirmación de reserva.
+* Confirmación de pago.
+* Enlace para escribir la reseña.
+* Recordatorio de cita (dejando preparada la estructura para implementarlo posteriormente).
+
+---
+
+## 7. Seguridad
+
+Validar correctamente todos los formularios.
+
+Proteger el panel de administración.
+
+Evitar:
+
+* Reservas duplicadas.
+* Pagos duplicados.
+* Tokens reutilizados.
+* Ataques básicos de inyección.
+* Manipulación de datos desde el cliente.
+
+Toda la lógica crítica deberá ejecutarse en el servidor y nunca depender únicamente del frontend.
+
+---
+
+## 8. Código
+
+Mantener la arquitectura existente.
+
+No eliminar funcionalidades actuales.
+
+No sustituir componentes existentes salvo que sea imprescindible.
+
+Mantener un código limpio, modular, reutilizable y fácil de mantener.
+
+Añadir comentarios únicamente donde aporten valor.
+
+Evitar duplicar código.
+
+---
+
+## 9. Experiencia de usuario
+
+La integración de todas estas funcionalidades debe sentirse completamente natural.
+
+El usuario no debe percibir que se han añadido módulos independientes; todo debe parecer parte del diseño original.
+
+No modificar el aspecto visual general de la aplicación.
+
+Mantener exactamente la misma identidad gráfica, estilo, colores, tipografías y experiencia de navegación.
+
+Implementar únicamente las funcionalidades solicitadas respetando el diseño existente.

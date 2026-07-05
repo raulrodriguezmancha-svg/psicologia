@@ -16,7 +16,9 @@ import {
 const router: IRouter = Router();
 
 router.get("/bookings/stats", async (req, res): Promise<void> => {
-  const allBookings = await db.select({ status: bookingsTable.status, depositPaid: bookingsTable.depositPaid }).from(bookingsTable);
+  const allBookings = await db
+    .select({ status: bookingsTable.status, depositPaid: bookingsTable.depositPaid })
+    .from(bookingsTable);
 
   const stats = {
     total: allBookings.length,
@@ -53,10 +55,9 @@ router.get("/bookings", async (req, res): Promise<void> => {
     .leftJoin(servicesTable, eq(bookingsTable.serviceId, servicesTable.id))
     .orderBy(bookingsTable.createdAt);
 
-  res.json(ListBookingsResponse.parse(bookings.map(b => ({
-    ...b,
-    createdAt: b.createdAt.toISOString(),
-  }))));
+  res.json(
+    ListBookingsResponse.parse(bookings.map(b => ({ ...b, createdAt: b.createdAt.toISOString() })))
+  );
 });
 
 router.post("/bookings", async (req, res): Promise<void> => {
@@ -66,10 +67,32 @@ router.post("/bookings", async (req, res): Promise<void> => {
     return;
   }
 
-  // Check service exists and get deposit amount
-  const [service] = await db.select().from(servicesTable).where(eq(servicesTable.id, parsed.data.serviceId));
+  const [service] = await db
+    .select()
+    .from(servicesTable)
+    .where(eq(servicesTable.id, parsed.data.serviceId));
+
   if (!service) {
     res.status(400).json({ error: "Servicio no encontrado" });
+    return;
+  }
+
+  // Verificar que el slot no esté ya confirmado (anti-duplicados)
+  const [existing] = await db
+    .select({ id: bookingsTable.id })
+    .from(bookingsTable)
+    .where(
+      and(
+        eq(bookingsTable.appointmentDate, parsed.data.appointmentDate),
+        eq(bookingsTable.appointmentTime, parsed.data.appointmentTime),
+        eq(bookingsTable.status, "confirmed")
+      )
+    );
+
+  if (existing) {
+    res.status(409).json({
+      error: "Este horario ya no está disponible. Por favor, selecciona otro.",
+    });
     return;
   }
 
@@ -155,13 +178,18 @@ router.patch("/bookings/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [service] = await db.select({ name: servicesTable.name }).from(servicesTable).where(eq(servicesTable.id, updated.serviceId));
+  const [service] = await db
+    .select({ name: servicesTable.name })
+    .from(servicesTable)
+    .where(eq(servicesTable.id, updated.serviceId));
 
-  res.json(UpdateBookingStatusResponse.parse({
-    ...updated,
-    serviceName: service?.name ?? null,
-    createdAt: updated.createdAt.toISOString(),
-  }));
+  res.json(
+    UpdateBookingStatusResponse.parse({
+      ...updated,
+      serviceName: service?.name ?? null,
+      createdAt: updated.createdAt.toISOString(),
+    })
+  );
 });
 
 export default router;
