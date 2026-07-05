@@ -69,27 +69,39 @@ export default function About() {
 
             <Card className="border-none shadow-lg bg-card">
               <CardContent className="p-6 md:p-8 space-y-6">
-                <h3 className="font-serif text-xl font-medium border-b border-border pb-4">Credenciales</h3>
+                <h3 className="font-serif text-xl font-medium border-b border-border pb-4">Formación</h3>
                 <ul className="space-y-4 text-muted-foreground">
                   <li className="flex gap-3">
                     <span className="text-primary">•</span>
-                    <span><strong>Psicóloga Sanitaria Colegiada</strong> (M-12345)</span>
+                    <span><strong>Grado en Psicología</strong> – Universidad de Extremadura</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary">•</span>
-                    <span><strong>Neuropsicóloga</strong> con formación especializada en evaluación y rehabilitación cognitiva</span>
+                    <span><strong>Máster en Psicología General Sanitaria</strong> – Universidad Europea Miguel de Cervantes</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary">•</span>
-                    <span><strong>Grado en Psicología</strong> por la Universidad Autónoma de Madrid</span>
+                    <span><strong>Máster en Neuropsicología Clínica</strong> – Universidad Internacional de Valencia</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary">•</span>
-                    <span><strong>Máster en Psicología Clínica y de la Salud</strong></span>
+                    <span>Experto en Prevención e Intervención en la Conducta Suicida – AEPSIS</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary">•</span>
-                    <span>Formación avanzada en TCC, ACT, DBT y Análisis Funcional</span>
+                    <span>Curso Habilidades de Comunicación – Universidad Internacional de Valencia</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-primary">•</span>
+                    <span>Curso Inteligencia Emocional – Universidad Internacional de Valencia</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-primary">•</span>
+                    <span>Curso Resiliencia – Universidad Internacional de Valencia</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-primary">•</span>
+                    <span>Curso Solución de Problemas – Universidad Internacional de Valencia</span>
                   </li>
                 </ul>
               </CardContent>
