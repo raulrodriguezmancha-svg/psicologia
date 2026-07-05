@@ -25,14 +25,6 @@ app.use(
 
 app.use(cors());
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self';"
-  );
-  next();
-});
-
 // El webhook de Stripe necesita el body como Buffer — debe ir ANTES de express.json()
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 
@@ -46,7 +38,7 @@ const indexHtml = path.join(frontendDist, "index.html");
 
 logger.info({ frontendDist, indexHtml, exists: fs.existsSync(indexHtml) }, "Frontend static path");
 
-app.use(express.static(frontendDist));
+app.use(express.static(frontendDist, { index: "index.html" }));
 app.get("/{*splat}", (req, res) => {
   res.sendFile(indexHtml);
 });
