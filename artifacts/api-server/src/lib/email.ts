@@ -39,7 +39,19 @@ export function bookingConfirmationHtml(params: {
   date: string;
   time: string;
   depositAmount: number;
+  meetLink?: string;
 }): string {
+  const meetSection = params.meetLink
+    ? `
+  <div style="text-align:center;margin:24px 0">
+    <a href="${params.meetLink}" style="background:#b8912d;color:white;padding:14px 28px;text-decoration:none;border-radius:24px;font-size:16px;font-family:Georgia,serif;display:inline-block">
+      Unirse a Google Meet
+    </a>
+  </div>
+  <p style="font-size:13px;color:#888;text-align:center">Este enlace es para tu sesión online. Guárdalo, lo necesitarás el día de tu cita.</p>`
+    : `
+  <p>Recibirás el enlace de videollamada poco antes de la sesión.</p>`;
+
   return `
 <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#3d2b1a;padding:24px">
   <h2 style="color:#b8912d;margin-bottom:8px">¡Tu cita está confirmada!</h2>
@@ -51,7 +63,8 @@ export function bookingConfirmationHtml(params: {
     <tr style="background:#fdf8f0"><td style="padding:10px 14px;font-weight:bold">Hora</td><td style="padding:10px 14px">${params.time}</td></tr>
     <tr><td style="padding:10px 14px;font-weight:bold">Señal abonada</td><td style="padding:10px 14px">${params.depositAmount}€</td></tr>
   </table>
-  <p>Recibirás el enlace de videollamada poco antes de la sesión. Si necesitas cancelar, hazlo con al menos 48 h de antelación.</p>
+  ${meetSection}
+  <p>Si necesitas cancelar, hazlo con al menos 48 h de antelación.</p>
   <p style="margin-top:24px">Un saludo,<br><strong>Alba García Santillana</strong><br><em>Psicóloga y Neuropsicóloga</em></p>
 </div>`;
 }

@@ -7,6 +7,7 @@ import reviewsRouter from "./reviews";
 import paymentsRouter from "./payments";
 import adminRouter from "./admin";
 import reviewTokensRouter from "./reviewTokens";
+import googleRouter from "./google";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(reviewsRouter);
 router.use(paymentsRouter);
 router.use(adminRouter);
 router.use(reviewTokensRouter);
+router.use(googleRouter);
 
 export default router;

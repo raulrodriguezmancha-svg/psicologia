@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { CreatePaymentCheckoutBody, CreatePaymentCheckoutResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
 import { sendEmail, bookingConfirmationHtml } from "../lib/email";
+import { createCalendarEvent } from "./google";
 
 const router: IRouter = Router();
 
@@ -35,6 +36,45 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
       .update(bookingsTable)
       .set({ stripeSessionId: mockSessionId, depositPaid: true, status: "confirmed" })
       .where(eq(bookingsTable.id, bookingId));
+
+    const [service] = await db
+      .select({ name: servicesTable.name, duration: servicesTable.duration })
+      .from(servicesTable)
+      .where(eq(servicesTable.id, booking.serviceId));
+
+    const dateFormatted = new Date(booking.appointmentDate + "T00:00:00").toLocaleDateString(
+      "es-ES",
+      { weekday: "long", day: "numeric", month: "long", year: "numeric" }
+    );
+
+    let meetLink: string | null = null;
+    try {
+      meetLink = await createCalendarEvent({
+        summary: `${service?.name ?? "Sesión"} — ${booking.clientName}`,
+        description: `Sesión de psicología con ${booking.clientName}\nEmail: ${booking.clientEmail}\nTeléfono: ${booking.clientPhone}${booking.notes ? `\nNotas: ${booking.notes}` : ""}`,
+        date: booking.appointmentDate,
+        time: booking.appointmentTime,
+        durationMinutes: service?.duration ?? 60,
+      });
+      if (meetLink) {
+        await db.update(bookingsTable).set({ calendarEventId: meetLink }).where(eq(bookingsTable.id, bookingId));
+      }
+    } catch (err) {
+      logger.error({ err, bookingId }, "Error al crear evento en Google Calendar (mock)");
+    }
+
+    await sendEmail({
+      to: booking.clientEmail,
+      subject: "¡Tu cita está confirmada! — Alba García Santillana",
+      html: bookingConfirmationHtml({
+        clientName: booking.clientName,
+        serviceName: service?.name ?? "Sesión de psicología",
+        date: dateFormatted,
+        time: booking.appointmentTime,
+        depositAmount: booking.depositAmount ?? 0,
+        meetLink: meetLink ?? undefined,
+      }),
+    });
 
     res.json(
       CreatePaymentCheckoutResponse.parse({
@@ -143,7 +183,7 @@ router.post("/payments/webhook", async (req, res): Promise<void> => {
 
         if (updated) {
           const [service] = await db
-            .select({ name: servicesTable.name })
+            .select({ name: servicesTable.name, duration: servicesTable.duration })
             .from(servicesTable)
             .where(eq(servicesTable.id, updated.serviceId));
 
@@ -151,6 +191,22 @@ router.post("/payments/webhook", async (req, res): Promise<void> => {
             "es-ES",
             { weekday: "long", day: "numeric", month: "long", year: "numeric" }
           );
+
+          let meetLink: string | null = null;
+          try {
+            meetLink = await createCalendarEvent({
+              summary: `${service?.name ?? "Sesión"} — ${updated.clientName}`,
+              description: `Sesión de psicología con ${updated.clientName}\nEmail: ${updated.clientEmail}\nTeléfono: ${updated.clientPhone}${updated.notes ? `\nNotas: ${updated.notes}` : ""}`,
+              date: updated.appointmentDate,
+              time: updated.appointmentTime,
+              durationMinutes: service?.duration ?? 60,
+            });
+            if (meetLink) {
+              await db.update(bookingsTable).set({ calendarEventId: meetLink }).where(eq(bookingsTable.id, bookingId));
+            }
+          } catch (err) {
+            logger.error({ err, bookingId }, "Error al crear evento en Google Calendar");
+          }
 
           await sendEmail({
             to: updated.clientEmail,
@@ -161,6 +217,7 @@ router.post("/payments/webhook", async (req, res): Promise<void> => {
               date: dateFormatted,
               time: updated.appointmentTime,
               depositAmount: updated.depositAmount ?? 0,
+              meetLink: meetLink ?? undefined,
             }),
           });
 
