@@ -64,7 +64,7 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
       logger.error({ err, bookingId }, "Error al crear evento en Google Calendar (free)");
     }
 
-    await sendEmail({
+    sendEmail({
       to: booking.clientEmail,
       subject: "¡Tu cita está confirmada! — Alba García Santillana",
       html: bookingConfirmationHtml({
@@ -75,7 +75,7 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
         depositAmount: 0,
         meetLink: meetLink ?? undefined,
       }),
-    });
+    }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (free)"));
 
     logger.info({ bookingId }, "Reserva gratuita confirmada sin pago");
 
@@ -124,7 +124,7 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
       logger.error({ err, bookingId }, "Error al crear evento en Google Calendar (mock)");
     }
 
-    await sendEmail({
+    sendEmail({
       to: booking.clientEmail,
       subject: "¡Tu cita está confirmada! — Alba García Santillana",
       html: bookingConfirmationHtml({
@@ -135,7 +135,7 @@ router.post("/payments/create-checkout", async (req, res): Promise<void> => {
         depositAmount: booking.depositAmount ?? 0,
         meetLink: meetLink ?? undefined,
       }),
-    });
+    }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (mock)"));
 
     res.json(
       CreatePaymentCheckoutResponse.parse({
@@ -267,7 +267,7 @@ router.post("/payments/webhook", async (req, res): Promise<void> => {
             logger.error({ err, bookingId }, "Error al crear evento en Google Calendar");
           }
 
-          await sendEmail({
+          sendEmail({
             to: updated.clientEmail,
             subject: "¡Tu cita está confirmada! — Alba García Santillana",
             html: bookingConfirmationHtml({
@@ -278,7 +278,7 @@ router.post("/payments/webhook", async (req, res): Promise<void> => {
               depositAmount: updated.depositAmount ?? 0,
               meetLink: meetLink ?? undefined,
             }),
-          });
+          }).catch(err => logger.error({ err, bookingId }, "Error al enviar email (webhook)"));
 
           logger.info({ bookingId }, "Reserva confirmada tras pago Stripe");
         }
