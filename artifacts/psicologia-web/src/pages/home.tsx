@@ -47,13 +47,11 @@ export default function Home() {
 
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif text-foreground font-medium leading-tight mb-6 animate-in fade-in slide-in-from-bottom-6 delay-150 fill-mode-both">
             Un espacio seguro <br />
-            para <span className="text-primary italic">volver a ti</span>.
+            para <span className="text-primary italic">entenderte</span>.
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 delay-300 fill-mode-both">
-            Acompañamiento psicológico profesional para superar la ansiedad, el
-            estrés y reconectar con tu bienestar emocional. Da el primer paso
-            hoy.
+            Acompañamiento psicológico online para ayudarte a gestionar la ansiedad, el estrés y otros momentos difíciles desde un enfoque cercano, profesional y basado en la evidencia.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-10 delay-500 fill-mode-both">
