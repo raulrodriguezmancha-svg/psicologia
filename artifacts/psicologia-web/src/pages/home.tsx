@@ -126,27 +126,15 @@ export default function Home() {
               Psicóloga y Neuropsicóloga
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Mi objetivo es ofrecerte un acompañamiento psicológico cercano,
-              profesional y basado en la evidencia científica para ayudarte a
-              comprender lo que estás viviendo y encontrar herramientas que te
-              permitan afrontar las dificultades con mayor bienestar.
+              Mi objetivo es ofrecerte un acompañamiento psicológico cercano, profesional y basado en la evidencia científica para ayudarte a comprender lo que estás viviendo y encontrar herramientas que te permitan afrontar las dificultades con mayor bienestar.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Creo en un espacio de escucha, confianza y respeto, donde puedas
-              expresarte con libertad y sin miedo a ser juzgado. La terapia es
-              un proceso de colaboración en el que trabajaremos juntos para
-              comprender qué te ocurre, identificar aquello que mantiene el
-              malestar y avanzar hacia los cambios que deseas.
+              Creo en un espacio de escucha, confianza y respeto, donde puedas expresarte con libertad y sin miedo a ser juzgado. La terapia es un proceso de colaboración en el que trabajaremos juntos para comprender qué te ocurre, identificar aquello que mantiene el malestar y avanzar hacia los cambios que deseas.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              No existe una única forma de hacer terapia que funcione para todo
-              el mundo. Por eso adapto la intervención a las necesidades de cada
-              persona, utilizando las herramientas que mejor se ajustan a cada
-              caso y que cuentan con respaldo científico. Cuento con formación en
-              Terapia Cognitivo-Conductual (TCC), Terapia de Aceptación y
-              Compromiso (ACT), Terapia Dialéctico-Conductual (DBT), Análisis
-              Funcional y Neuropsicología Clínica.
+              No existe una única forma de hacer terapia que funcione para todo el mundo. Por eso adapto la intervención a las necesidades de cada persona, utilizando las herramientas que mejor se ajustan a cada caso y que cuentan con respaldo científico. Cuento con formación en Terapia Cognitivo-Conductual (TCC), Terapia de Aceptación y Compromiso (ACT), Terapia Dialéctico-Conductual (DBT), Análisis Funcional y Neuropsicología Clínica.
             </p>
+            
             <div className="pt-4">
               <Link
                 href="/sobre-mi"
